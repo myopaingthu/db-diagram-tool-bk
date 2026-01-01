@@ -6,9 +6,16 @@ const SettingSchema = new Schema(
       type: String,
       required: true,
     },
+    ast: {
+      type: Schema.Types.Mixed,
+      default: null,
+    },
     layout: {
       type: Schema.Types.Mixed,
-      default: {},
+      default: {
+        nodes: [],
+        edges: [],
+      },
     },
     preferences: {
       type: Schema.Types.Mixed,
@@ -40,15 +47,20 @@ export const DiagramSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["editing", "idle", "saving"],
+      enum: ["editing", "idle", "saving", "parsing", "error"],
       default: "idle",
     },
     validationErrors: [
       {
-        table: String,
-        column: String,
+        line: Number,
+        column: Number,
         message: String,
+        type: {
+          type: String,
+          enum: ["syntax", "semantic", "validation"],
+        },
         code: String,
+        table: String,
       },
     ],
     setting: {

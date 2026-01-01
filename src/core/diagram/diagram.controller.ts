@@ -8,9 +8,10 @@ import {
   Param,
   UseGuards,
   Request,
+  Query,
 } from "@nestjs/common";
 import { DiagramService } from "./diagram.service";
-import { CreateDiagramDto, UpdateDiagramDto } from "./dto/diagram.dto";
+import { CreateDiagramDto, UpdateDiagramDto, SyncDiagramDto } from "./dto/diagram.dto";
 import { JwtAuthGuard } from "@src/core/auth/guards/jwt-auth.guard";
 import type { ApiResponse } from "@src/types";
 
@@ -25,14 +26,23 @@ export class DiagramController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  async list(@Request() req: any): Promise<ApiResponse<any[]>> {
-    return this.diagramService.list(req.user.userId);
+  async list(
+    @Request() req: any,
+    @Query("page") page?: string,
+    @Query("limit") limit?: string
+  ): Promise<ApiResponse<any>> {
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 10;
+    return this.diagramService.list(req.user.userId, pageNum, limitNum);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(":id")
-  async getById(@Param("id") id: string): Promise<ApiResponse<any>> {
-    return this.diagramService.findById(id);
+  async getById(
+    @Param("id") id: string,
+    @Request() req: any
+  ): Promise<ApiResponse<any>> {
+    return this.diagramService.findById(id, req.user.userId);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -61,6 +71,25 @@ export class DiagramController {
     @Request() req: any
   ): Promise<ApiResponse<boolean>> {
     return this.diagramService.delete(id, req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post("sync")
+  async sync(
+    @Request() req: any,
+    @Body() dto: SyncDiagramDto
+  ): Promise<ApiResponse<any>> {
+    return this.diagramService.sync(req.user.userId, undefined, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put("sync/:id")
+  async syncUpdate(
+    @Param("id") id: string,
+    @Request() req: any,
+    @Body() dto: SyncDiagramDto
+  ): Promise<ApiResponse<any>> {
+    return this.diagramService.sync(req.user.userId, id, dto);
   }
 }
 

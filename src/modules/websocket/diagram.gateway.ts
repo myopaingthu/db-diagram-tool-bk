@@ -9,9 +9,11 @@ import {
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { ParserService } from "@src/core/parser/parser.service";
+import { DbmlConverterService } from "@src/core/parser/dbml-converter.service";
 import { JwtService } from "@nestjs/jwt";
 import { CONFIG } from "@src/config";
 import { Logger } from "@nestjs/common";
+import type { SchemaAST, ParseError } from "@src/types";
 
 @WebSocketGateway({
   cors: {
@@ -28,6 +30,7 @@ export class DiagramGateway
 
   constructor(
     private readonly parserService: ParserService,
+    private readonly dbmlConverter: DbmlConverterService,
     private readonly jwtService: JwtService
   ) {
     this.logger = new Logger(DiagramGateway.name);
@@ -87,6 +90,47 @@ export class DiagramGateway
     } catch (error: any) {
       client.emit("diagram:error", {
         message: error.message || "An error occurred",
+      });
+    }
+  }
+
+  @SubscribeMessage("diagram:update-ast")
+  async handleUpdateAst(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { ast: SchemaAST }
+  ) {
+    try {
+      const userId = (client as any).userId;
+      if (!userId) {
+        client.emit("diagram:error", {
+          message: "Unauthorized",
+        });
+        return;
+      }
+
+      const dbmlText = this.dbmlConverter.convertToDbml(data.ast);
+
+      const parseResult = await this.parserService.parse(dbmlText);
+
+      const errors: ParseError[] = parseResult.status && parseResult.data
+        ? parseResult.data.errors
+        : [
+            {
+              line: 0,
+              message: parseResult.error || "Failed to validate AST",
+              type: "validation",
+            },
+          ];
+
+      client.emit("diagram:ast-updated", {
+        ast: data.ast,
+        dbmlText: dbmlText,
+        errors: errors,
+      });
+    } catch (error: any) {
+      this.logger.error("Error converting AST to DBML:", error);
+      client.emit("diagram:error", {
+        message: error.message || "An error occurred during AST update",
       });
     }
   }

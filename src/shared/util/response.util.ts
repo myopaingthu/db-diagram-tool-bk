@@ -1,19 +1,19 @@
 import { ApiResponse } from "@src/types";
 
 export class ResponseUtil {
-  static success<T>(data: T, errorCode?: number): ApiResponse<T> {
+  static success<T>(data: T, code?: number): ApiResponse<T> {
     return {
       status: true,
       data,
-      errorCode: errorCode || 200,
+      code: code || 200,
     };
   }
 
-  static error(error: string, errorCode = 500): ApiResponse {
+  static error(error: string, code = 500): ApiResponse {
     return {
       status: false,
       error,
-      errorCode,
+      code,
     };
   }
 }

@@ -54,6 +54,3 @@ export const DiagramHistorySchema = new Schema(
     },
   }
 );
-
-DiagramHistorySchema.index({ createdAt: 1 }, { expireAfterSeconds: 86400 });
-

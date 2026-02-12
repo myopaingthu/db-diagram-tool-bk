@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@dbml/core": "^5.3.1",
+    "@google/genai": "^1.40.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.2",
@@ -29,6 +30,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/platform-socket.io": "^11.1.10",
     "@nestjs/websockets": "^11.1.10",
+    "axios": "^1.13.5",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
@@ -81,6 +83,9 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^@src/(.*)$": "<rootDir>/$1"
+    }
   }
 }

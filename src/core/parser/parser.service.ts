@@ -45,7 +45,6 @@ export class ParserService {
         errors: parseErrors,
       });
     } catch (error: any) {
-      console.log("error",error);
       const parseError: ParseError = {
         line: error.line || 0,
         column: error.column,
@@ -69,4 +68,3 @@ export class ParserService {
     }
   }
 }
-

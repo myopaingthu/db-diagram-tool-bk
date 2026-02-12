@@ -14,6 +14,9 @@ import { JwtService } from "@nestjs/jwt";
 import { CONFIG } from "@src/config";
 import { Logger } from "@nestjs/common";
 import type { SchemaAST, ParseError } from "@src/types";
+import { AiOrchestrationService } from "@src/core/ai/ai-orchestration.service";
+import { AiPromptDto } from "@src/core/ai/dto/ai.dto";
+import { AiOrchestrationError } from "@src/core/ai/types/ai.types";
 
 @WebSocketGateway({
   cors: {
@@ -31,7 +34,8 @@ export class DiagramGateway
   constructor(
     private readonly parserService: ParserService,
     private readonly dbmlConverter: DbmlConverterService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
+    private readonly aiOrchestrationService: AiOrchestrationService
   ) {
     this.logger = new Logger(DiagramGateway.name);
   }
@@ -134,5 +138,48 @@ export class DiagramGateway
       });
     }
   }
-}
 
+  @SubscribeMessage("ai:prompt")
+  async handleAiPrompt(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: AiPromptDto
+  ) {
+    try {
+      const userId = (client as any).userId as string | undefined;
+      if (!userId) {
+        client.emit("ai:error", {
+          message: "Unauthorized",
+        });
+        return;
+      }
+
+      const result = await this.aiOrchestrationService.processPrompt(
+        {
+          userId,
+          diagramId: data.diagramId,
+          prompt: data.prompt,
+          currentDbml: data.currentDbml,
+          name: data.name,
+          description: data.description,
+        },
+        {
+          onSession: (payload) => {
+            client.emit("ai:session", payload);
+          },
+          onToken: (payload) => {
+            client.emit("ai:token", payload);
+          },
+        }
+      );
+
+      client.emit("ai:done", result);
+    } catch (error: any) {
+      const requestId =
+        error instanceof AiOrchestrationError ? error.requestId : undefined;
+      client.emit("ai:error", {
+        requestId,
+        message: error.message || "Failed to process AI prompt",
+      });
+    }
+  }
+}

@@ -7,7 +7,8 @@ export class DatabaseService {
   constructor(
     @InjectModel("User") public readonly User: Model<any>,
     @InjectModel("Diagram") public readonly Diagram: Model<any>,
-    @InjectModel("DiagramHistory") public readonly DiagramHistory: Model<any>
+    @InjectModel("DiagramHistory") public readonly DiagramHistory: Model<any>,
+    @InjectModel("DiagramAiMessage")
+    public readonly DiagramAiMessage: Model<any>
   ) {}
 }
-

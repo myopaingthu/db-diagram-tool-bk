@@ -6,6 +6,7 @@ import { AUTH_CONSTANTS } from "@src/constants";
 import { CONFIG } from "@src/config";
 import { RegisterDto, LoginDto } from "./dto/auth.dto";
 import { AuthResponse, JwtPayload, ApiResponse } from "@src/types";
+import type { User } from "@src/types";
 import { ResponseUtil } from "@src/shared/util/response.util";
 
 @Injectable()
@@ -71,24 +72,25 @@ export class AuthService {
     });
   }
 
-  async getMe(userId: string): Promise<ApiResponse<any>> {
+  async getMe(userId: string): Promise<ApiResponse<Omit<User, "password">>> {
     const user = await this.database.User.findById(userId).exec();
     if (!user) {
       return ResponseUtil.error("User not found", 404);
     }
 
-    return ResponseUtil.success({
+    const userPayload: Omit<User, "password"> = {
       _id: user._id.toString(),
       email: user.email,
       name: user.name,
       verified: user.verified,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
-    });
+    };
+
+    return ResponseUtil.success(userPayload);
   }
 
   private generateToken(payload: JwtPayload): string {
     return this.jwtService.sign(payload);
   }
 }
-

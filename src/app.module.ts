@@ -6,6 +6,7 @@ import { AuthModule } from "@src/core/auth/auth.module";
 import { ParserModule } from "@src/core/parser/parser.module";
 import { DiagramModule } from "@src/core/diagram/diagram.module";
 import { WebSocketModule } from "@src/modules/websocket/websocket.module";
+import { AiModule } from "@src/core/ai/ai.module";
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { WebSocketModule } from "@src/modules/websocket/websocket.module";
     AuthModule,
     ParserModule,
     DiagramModule,
+    AiModule,
     WebSocketModule,
   ],
   controllers: [AppController],

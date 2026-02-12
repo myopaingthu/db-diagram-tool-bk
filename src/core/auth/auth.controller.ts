@@ -2,8 +2,10 @@ import { Controller, Post, Get, Body, UseGuards, Request } from "@nestjs/common"
 import { AuthService } from "./auth.service";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { RegisterDto, LoginDto } from "./dto/auth.dto";
+import type { AuthenticatedRequest } from "./interfaces/authenticated-request.interface";
 import type { ApiResponse } from "@src/types";
 import type { AuthResponse } from "@src/types";
+import type { User } from "@src/types";
 
 @Controller("/api/core/auth")
 export class AuthController {
@@ -21,8 +23,9 @@ export class AuthController {
 
   @Get("/me")
   @UseGuards(JwtAuthGuard)
-  async getMe(@Request() req: any): Promise<ApiResponse<any>> {
+  async getMe(
+    @Request() req: AuthenticatedRequest
+  ): Promise<ApiResponse<Omit<User, "password">>> {
     return this.authService.getMe(req.user.userId);
   }
 }
-
